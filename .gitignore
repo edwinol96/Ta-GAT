@@ -1,0 +1,37 @@
+# UHI Analysis outputs
+uhi_analysis_output/
+
+# Sample mask files (not the original data)
+ROI_WorldCover_2021_10m_urban_mask.tif
+ROI_WorldCover_2021_10m_rural_mask.tif
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.log

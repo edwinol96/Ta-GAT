@@ -158,7 +158,10 @@ def build_adjacency_from_neighbors(df: pd.DataFrame, neighbor_csv: str, k: int =
             for j_idx in range(1, len(indices[i])):  # Skip self
                 j = indices[i][j_idx]
                 dist = distances[i][j_idx]
-                weight = 1.0 / (dist * 111 + 0.1)  # Approximate km conversion
+                # 111 km/degree is the approximate conversion at the equator
+                # (1 degree of latitude ≈ 111 km)
+                KM_PER_DEGREE = 111
+                weight = 1.0 / (dist * KM_PER_DEGREE + 0.1)
                 adj[i, j] = weight
                 adj[j, i] = weight
     
@@ -615,9 +618,10 @@ def forecast_with_masking(
                 pred_np[:, :steps_to_add]
             ], axis=1)
             
-            # Ensure masked sensors stay masked
+            # Masked sensors continue to receive zero values (not model predictions)
+            # This maintains the masking constraint during autoregressive rollout
             for idx in masked_indices:
-                new_seq[idx, :seq_len - steps_to_add] = current_seq[idx, steps_to_add:]
+                new_seq[idx, :] = 0.0
             
             current_seq = new_seq
     
@@ -734,6 +738,13 @@ def run_forecast_evaluation(
     return summary
 
 
+def format_sensor_title(name: str, prefix: str = '', max_len: int = 30) -> str:
+    """Format sensor name for plot titles, truncating if necessary."""
+    if len(name) > max_len:
+        return f'{prefix}{name[:max_len]}...'
+    return f'{prefix}{name}'
+
+
 def plot_forecast_results(
     result: Dict[str, Any],
     station_names: List[str],
@@ -760,7 +771,7 @@ def plot_forecast_results(
         ax.plot(time_steps, predictions[idx], 'r--s', label='Predicted', linewidth=2, markersize=6)
         ax.set_xlabel('Time Step')
         ax.set_ylabel('Temperature (°C)')
-        ax.set_title(f'Masked Sensor: {station_names[idx][:30]}...' if len(station_names[idx]) > 30 else f'Masked Sensor: {station_names[idx]}')
+        ax.set_title(format_sensor_title(station_names[idx], prefix='Masked Sensor: '))
         ax.legend()
         ax.grid(True, alpha=0.3)
     
@@ -781,7 +792,7 @@ def plot_forecast_results(
         ax.plot(time_steps, predictions[idx], 'g--s', label='Predicted', linewidth=2, markersize=6)
         ax.set_xlabel('Time Step')
         ax.set_ylabel('Temperature (°C)')
-        ax.set_title(f'Unmasked Sensor: {station_names[idx][:30]}...' if len(station_names[idx]) > 30 else f'Unmasked Sensor: {station_names[idx]}')
+        ax.set_title(format_sensor_title(station_names[idx], prefix='Unmasked Sensor: '))
         ax.legend()
         ax.grid(True, alpha=0.3)
     
